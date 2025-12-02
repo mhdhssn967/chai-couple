@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+body{
+  background-color: #f4f0de;
+}
+*{
+  font-family: "Raleway", sans-serif;
+}
+button:hover{
+  cursor: pointer !important;
+}
