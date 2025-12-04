@@ -62,9 +62,7 @@ export default function AdminHomePage() {
       </div>
 
       {/* Footer */}
-      <p className="text-center text-sm text-[#5b3a28] opacity-70 mt-8">
-        Powered by Chai Couple System
-      </p>
+     
     </div>
   );
 }
