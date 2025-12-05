@@ -31,9 +31,12 @@ export default function OrderToken() {
 
   if (tokens.length === 0) {
     return (
-      <div className="flex justify-center items-center h-screen text-lg text-gray-500">
-        No active orders found.
-      </div>
+      <>
+      <HomeButton/>
+          <div className="flex justify-center items-center h-screen text-lg text-gray-500">
+            No active orders found.
+          </div>
+      </>
     );
   }
 
