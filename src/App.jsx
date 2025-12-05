@@ -14,7 +14,7 @@ import UserHomePage from "./pages/UserHomePage";
 import BookSlotPage from "./userPages/BookSlotPage";
 import OrderToken from "./userPages/OrderToken";
 import Orders from "./pages/Orders";
-import LiveOrderStatus from "./userPages/LiveORderStatus";
+import OrderLive from "./userPages/OrderLive";
 function App() {
   return (
     <Router>
@@ -45,7 +45,7 @@ function App() {
             path="/order-status" 
             element={
               <ProtectedRoute>
-                <LiveOrderStatus />
+                <OrderLive />
               </ProtectedRoute>
             } 
           />
