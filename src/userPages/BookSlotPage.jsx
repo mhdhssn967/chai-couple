@@ -20,7 +20,7 @@ export default function BookSlotPage() {
   });
 
   const menuItems = [
-    { id: "chai", label: "Irani Chair" },
+    { id: "chai", label: "Irani Chai" },
     { id: "bun", label: "BunMuska" },
     { id: "tiramisu", label: "Tiramisu" }
   ];
