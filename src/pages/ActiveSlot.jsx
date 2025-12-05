@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Calendar, Clock, MapPin, Timer } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { doc, updateDoc } from "firebase/firestore";
+import { collection, doc, getDocs, updateDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { isAdmin } from "../services/firebaseService";
+
 
 export default function ActiveSlot({ slot }) {
   const [countdown, setCountdown] = useState("");
@@ -16,9 +17,15 @@ export default function ActiveSlot({ slot }) {
     setAdmin(isAdminRef)
   };checkAdmin()
   },[])
+
+
   
 
   const navigate = useNavigate();
+
+  function viewOrders(slotId) {
+    navigate(`/orders/${slotId}`);
+  }
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -44,16 +51,33 @@ export default function ActiveSlot({ slot }) {
 
   // ⭐ Start Slot + Navigate
   const handleStart = async (slotId) => {
-    try {
-      await updateDoc(doc(db, "slots", slotId), { isStarted: true });
+  try {
+    // 1️⃣ Fetch all slots
+    const slotsRef = collection(db, "slots");
+    const snap = await getDocs(slotsRef);
 
-      console.log("Slot started:", slotId);
+    // 2️⃣ Check if any slot is already started
+    const alreadyRunning = snap.docs.find(
+      (d) => d.id !== slotId && d.data().isStarted === true
+    );
 
-      navigate("/live-order");
-    } catch (error) {
-      console.error("Error starting slot:", error);
+    if (alreadyRunning) {
+      alert(
+        `Another slot is already active.\n\nClose the active slot before starting a new one.`
+      );
+      return;
     }
-  };
+
+    // 3️⃣ No active slot → Start new one
+    await updateDoc(doc(db, "slots", slotId), { isStarted: true });
+
+    console.log("Slot started:", slotId);
+    navigate("/live-order");
+
+  } catch (error) {
+    console.error("Error starting slot:", error);
+  }
+};
 
   return (
     <div className="w-full px-2 py-3 flex flex-col items-center">
@@ -107,12 +131,21 @@ export default function ActiveSlot({ slot }) {
         </div>
 
         {/* BUTTON */}
-        {admin&&<button
+        {admin&&<><button
           onClick={() => handleStart(slot.id)}
           className="w-full mt-6 bg-[#452e1c] text-white py-3 rounded-xl text-lg font-semibold shadow hover:opacity-90 active:scale-95 transition"
         >
           {slot.isStarted ? "Go to Live Panel" : "Start Now"}
-        </button>}
+        </button>
+        <button
+  onClick={() => viewOrders(slot.id)}
+  style={{ color: "#452e1c" }}
+  className="w-full mt-6 bg-[#f4f0de] border border-[#452e1c] text-white py-3 rounded-xl text-lg font-semibold shadow hover:opacity-90 active:scale-95 transition"
+>
+  View Orders
+</button>
+
+        </>}
         {!admin && (
   <button
     onClick={() => navigate(`/book/${slot.id}`)}

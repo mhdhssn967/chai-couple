@@ -1,4 +1,4 @@
-import { collection, getDocs, doc, updateDoc, addDoc, query, where } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, addDoc, query, where, getDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig"
 import { getAuth } from "firebase/auth";
 
@@ -86,7 +86,6 @@ export const fetchStartedSlot = async () => {
 
     // Should return only one slot anyway
     const slot = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
-    console.log("Started Slot:", slot);
 
     return slot;
   } catch (err) {
@@ -132,4 +131,55 @@ export async function isAdmin() {
 export async function isUser() {
   const role = await getUserRole();
   return role === "user";
+}
+
+
+// Fetch all orders
+
+export async function getOrdersForSlot(slotId) {
+  try {
+    const ref = collection(db, "Bookings", slotId, "userBookings");
+    const snap = await getDocs(ref);
+
+    const orders = snap.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    // Sort by token number (ascending)
+    return orders.sort((a, b) => (a.tokenNumber || 0) - (b.tokenNumber || 0));
+  } catch (err) {
+    console.error("Error fetching orders:", err);
+    return [];
+  }
+}
+
+
+
+// Fetches the started slot and its orders
+export async function getActiveSlotWithOrders() {
+  try {
+    // 1️⃣ Find the slot that is currently started
+    const startedSlot=await fetchStartedSlot()
+
+    // 2️⃣ Fetch all user orders inside that slot
+    const ordersRef = collection(
+      db,
+      "Bookings",
+      startedSlot.id,
+      "userBookings"
+    );
+
+    const ordersSnap = await getDocs(ordersRef);
+
+    const orders = ordersSnap.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.tokenNumber || 0) - (b.tokenNumber || 0));
+
+    return { orders };
+
+  } catch (err) {
+    console.error("Error fetching active slot + orders:", err);
+    return { orders: [] };
+  }
 }

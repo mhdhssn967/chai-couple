@@ -10,7 +10,7 @@ export default function UserHomePage() {
   const actions = [
     { name: "View Open Slots", icon: Clock, path: "/view-slots", protected: true },
     { name: "My Token", icon: Ticket, path: "/my-token", protected: true },
-    { name: "Live Order Status", icon: Coffee, path: "/live-order", protected: true },
+    { name: "Live Order Status", icon: Coffee, path: "/order-status", protected: true },
     { name: "Menu", icon: MenuIcon, path: "/menu", protected: false }
   ];
 

@@ -13,7 +13,8 @@ import LoginRegister from "./pages/LoginRegister"; // your login page
 import UserHomePage from "./pages/UserHomePage";
 import BookSlotPage from "./userPages/BookSlotPage";
 import OrderToken from "./userPages/OrderToken";
-
+import Orders from "./pages/Orders";
+import LiveOrderStatus from "./userPages/LiveORderStatus";
 function App() {
   return (
     <Router>
@@ -41,6 +42,20 @@ function App() {
             } 
           />
           <Route 
+            path="/order-status" 
+            element={
+              <ProtectedRoute>
+                <LiveOrderStatus />
+              </ProtectedRoute>
+            } 
+          />
+          <Route path="/orders/:slotId" element={
+  <ProtectedRoute adminOnly>
+    <Orders />
+  </ProtectedRoute>
+} />
+
+          <Route 
             path="/view-slots" 
             element={
               <ProtectedRoute>
@@ -58,6 +73,7 @@ function App() {
           />
           <Route path="/" element={<UserHomePage />} />
         </Routes>
+        
       </div>
 
       <Footer />

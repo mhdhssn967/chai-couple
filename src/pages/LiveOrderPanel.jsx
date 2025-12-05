@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { CheckCircle, XCircle, Clock } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Torus, Coffee, CakeSlice } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import HomeButton from "../components/HomeButton";
+import { db } from "../../firebaseConfig";
+ import { collection, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
 
-export default function LiveOrderPanel({ orders = [], slot }) {
+export default function LiveOrderPanel({ orders, slot, update, setUpdate }) {
 
   // If no orders → show simple UI
-  if (!orders.length) {
+  if (!orders) {
     return (
       <>
         <div className="min-h-screen bg-background p-4 flex flex-col items-center">
@@ -29,26 +30,69 @@ export default function LiveOrderPanel({ orders = [], slot }) {
 
   const [history, setHistory] = useState([]);
 
-  const updateStatus = (status) => {
-    if (!current) return;
 
+const updateStatus = async (status) => {
+  if (!current) return;
+
+  try {
+    // Save history
     setHistory((prev) => [
       ...prev,
-      {
-        index,
-        statusMap,
-      },
+      { index, statusMap }
     ]);
 
+    console.log("Searching for order:", current.orderId);
+
+    // 1. Query the matching document
+    const q = query(
+      collection(db, "Bookings", current.slotId, "userBookings"),
+      where("orderId", "==", current.orderId)
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      console.error("No matching order found for:", current.orderId);
+      return;
+    }
+
+    // 2. Update the document (usually only one match)
+    const orderDoc = snap.docs[0];
+    const orderRef = orderDoc.ref;
+
+    await updateDoc(orderRef, { status });
+
+    console.log("Updated Firestore for:", current.orderId, status);
+
+    // 3. Update local UI
     setStatusMap((prev) => ({
       ...prev,
       [current.orderId]: status,
     }));
 
-    if (index < orders.length - 1) {
-      setIndex(index + 1);
-    }
-  };
+    // 4. Move to next order
+    setIndex((prev) => 
+      prev < orders.length - 1 ? prev + 1 : prev
+    );
+    setUpdate(!update)
+
+  } catch (err) {
+    console.error("Error updating status:", err);
+  }
+};
+
+const getRowColor=(status)=>
+  status === "waiting"
+    ? "bg-yellow-200"
+    : !status 
+    ? ""
+    : status === "completed"
+    ? "bg-green-200"
+    : status === "cancelled"
+    ? "bg-red-200"
+    : "";
+
+
 
   const completed = Object.values(statusMap).filter((s) => s === "completed").length;
   const waiting = Object.values(statusMap).filter((s) => s === "waiting").length;
@@ -65,7 +109,7 @@ export default function LiveOrderPanel({ orders = [], slot }) {
 
   return (
     <>
-      <HomeButton />
+  
 
       <div className="min-h-screen bg-background p-4 flex flex-col items-center">
 
@@ -86,7 +130,7 @@ export default function LiveOrderPanel({ orders = [], slot }) {
               fontFamily: 'Outfit, sans-serif',
               fontWeight: '600'
             }}>
-              Limit {slot.limit}
+
             </p>
 
             {/* Status summary */}
@@ -132,20 +176,20 @@ export default function LiveOrderPanel({ orders = [], slot }) {
             >
               <div className="text-primary mb-4">
                 <p className="text-sm opacity-70">Order ID: {current.orderId}</p>
-                <h2 className="text-2xl font-bold">Token #{current.token}</h2>
+                <h2 className="text-2xl font-bold">Token {current.tokenNumber}</h2>
                 <p className="text-base font-semibold mt-1">{current.name}</p>
               </div>
 
               {/* Items */}
               <div className="space-y-2 mt-3">
-                {current.items.bunMuska > 0 && (
-                  <p className="text-[#5b3a28]">🧈 Bun Muska × {current.items.bunMuska}</p>
+                {current.items.bun > 0 && (
+                  <p className="text-[#5b3a28]" style={{display:'flex',gap:'5px'}}> <Torus />  Bun Muska × {current.items.bun}</p>
                 )}
                 {current.items.chai > 0 && (
-                  <p className="text-[#5b3a28]">☕ Chai × {current.items.chai}</p>
+                  <p className="text-[#5b3a28]" style={{display:'flex',gap:'5px'}}><Coffee/> Chai × {current.items.chai}</p>
                 )}
                 {current.items.tiramisu > 0 && (
-                  <p className="text-[#5b3a28]">🍰 Tiramisu × {current.items.tiramisu}</p>
+                  <p className="text-[#5b3a28]" style={{display:'flex',gap:'5px'}}><CakeSlice/> Tiramisu × {current.items.tiramisu}</p>
                 )}
               </div>
 
@@ -209,14 +253,15 @@ export default function LiveOrderPanel({ orders = [], slot }) {
 
                 return (
                   <tr
-                    key={o.orderId}
-                    className={`${rowColor} border-b border-[#f0e7da] cursor-pointer hover:bg-[#f7f1e5] transition`}
-                    onClick={() => setIndex(i)}
-                  >
-                    <td className="py-2">{o.token}</td>
-                    <td>{o.orderId}</td>
-                    <td>{o.name}</td>
-                  </tr>
+  key={o.orderId}
+  className={`${getRowColor(o.status)} border-b border-[#f0e7da] cursor-pointer hover:bg-[#f7f1e5] transition`}
+  onClick={() => setIndex(i)}
+>
+  <td className="py-2 pt-10">{o.token}</td>
+  <td>{o.orderId}</td>
+  <td>{o.name}</td>
+</tr>
+
                 );
               })}
             </tbody>
