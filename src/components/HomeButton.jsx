@@ -16,7 +16,7 @@ export default function HomeButton({ size = 28 }) {
   
   return (
     <button
-      onClick={() => isAdmin?navigate("/admin"):navigate("/")}
+      onClick={() => admin?navigate("/admin"):navigate("/")}
       className="mt-2 ml-4 p-4 bg-[#452e1c] rounded-full shadow-md hover:shadow-xl transition active:scale-95 flex items-center justify-center"
       title="Go to Home"
     >
