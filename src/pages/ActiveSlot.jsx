@@ -3,9 +3,21 @@ import { Calendar, Clock, MapPin, Timer } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
+import { isAdmin } from "../services/firebaseService";
 
 export default function ActiveSlot({ slot }) {
   const [countdown, setCountdown] = useState("");
+  const [admin,setAdmin]=useState(false)
+
+
+  useEffect(()=>{
+    const checkAdmin=async()=>{
+    const isAdminRef=await isAdmin()
+    setAdmin(isAdminRef)
+  };checkAdmin()
+  },[])
+  
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -73,7 +85,7 @@ export default function ActiveSlot({ slot }) {
         </div>
 
         {/* INVENTORY SHOW */}
-        <div className="bg-[#f8f3e6] p-4 rounded-xl border border-[#d9cbb8] mt-3">
+        {admin&&<div className="bg-[#f8f3e6] p-4 rounded-xl border border-[#d9cbb8] mt-3">
           <h3 className="font-semibold text-[#5b3a28] mb-2">Inventory</h3>
 
           {slot.inventory?.map((item, index) => (
@@ -82,7 +94,7 @@ export default function ActiveSlot({ slot }) {
               <span>{item.quantity}</span>
             </div>
           ))}
-        </div>
+        </div>}
 
         {/* COUNTDOWN */}
         <div className="flex items-center justify-between bg-[#f4f0de] p-4 rounded-xl border border-[#d9cbb8] mt-5">
@@ -95,12 +107,20 @@ export default function ActiveSlot({ slot }) {
         </div>
 
         {/* BUTTON */}
-        <button
+        {admin&&<button
           onClick={() => handleStart(slot.id)}
           className="w-full mt-6 bg-[#452e1c] text-white py-3 rounded-xl text-lg font-semibold shadow hover:opacity-90 active:scale-95 transition"
         >
           {slot.isStarted ? "Go to Live Panel" : "Start Now"}
-        </button>
+        </button>}
+        {!admin && (
+  <button
+    onClick={() => navigate(`/book/${slot.id}`)}
+    className="w-full mt-6 bg-[#452e1c] text-white py-3 rounded-xl text-lg font-semibold shadow hover:opacity-90 active:scale-95 transition"
+  >
+    {slot.isStarted ? "Go to Live Panel" : "Book now"}
+  </button>
+)}
       </div>
     </div>
   );

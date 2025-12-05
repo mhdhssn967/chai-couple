@@ -31,7 +31,6 @@ export default function Slots() {
           <div key={slot.id} className="w-full max-w-md">
             <ActiveSlot slot={slot} loadSlots={loadSlots}/>
   
-           
           </div>
         ))}
       </div>

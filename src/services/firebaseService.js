@@ -1,5 +1,6 @@
 import { collection, getDocs, doc, updateDoc, addDoc, query, where } from "firebase/firestore";
 import { db } from "../../firebaseConfig"
+import { getAuth } from "firebase/auth";
 
 // Fetch all slots
 export const fetchSlots = async () => {
@@ -93,3 +94,42 @@ export const fetchStartedSlot = async () => {
     return null;
   }
 };
+
+
+// Roles identification
+// roleUtils.js
+
+
+/**
+ * Fetches role from Firebase Custom Claims
+ * @returns {Promise<"admin" | "user" | null>} role
+ */
+export async function getUserRole() {
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  if (!user) return null;
+
+  // Force refresh token to ensure updated custom claims
+  const token = await user.getIdTokenResult(true);
+
+  return token.claims.role || "user"; // default fallback
+}
+
+/**
+ * Helper function to check if the user is admin
+ * @returns boolean
+ */
+export async function isAdmin() {
+  const role = await getUserRole();
+  return role === "admin";
+}
+
+/**
+ * Helper function to check if the user is a normal user
+ * @returns boolean
+ */
+export async function isUser() {
+  const role = await getUserRole();
+  return role === "user";
+}
