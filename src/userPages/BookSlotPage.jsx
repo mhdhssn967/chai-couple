@@ -5,6 +5,7 @@ import { db } from "../../firebaseConfig";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
 import Swal from "sweetalert2";
 import { ensureSlotPath, generateOrderId, getNextTokenNumber } from "../services/Helpers";
+import HomeButton from "../components/HomeButton";
 
 
 export default function BookSlotPage() {
@@ -75,66 +76,69 @@ export default function BookSlotPage() {
 };
 
   return (
-    <div className="min-h-screen bg-[#f7f2eb] px-6 py-10">
-
-      <h1 className="text-3xl font-bold text-center text-[#5b3a28] mb-6">
-        Book Your Slot
-      </h1>
-
-      <div className="bg-white p-6 rounded-3xl shadow-lg border border-[#d9cbb8] max-w-lg mx-auto">
-
-        {/* <p className="text-center text-[#452e1c] font-semibold mb-4">
-          Selected Slot: <span className="text-black">{slotId}</span>
-        </p> */}
-
-        {/* Name */}
-        <input
-          type="text"
-          placeholder="Your Name"
-          className="w-full py-3 px-4 bg-[#faf6f0] border border-[#d8c5a8] rounded-xl mb-4"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-
-
-        <h2 className="text-xl font-semibold text-[#452e1c] mt-4 mb-2">Your Order</h2>
-
-        <div className="space-y-4">
-          {menuItems.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center justify-between p-3 border rounded-xl bg-[#faf6f0] border-[#d8c5a8]"
-            >
-              <span className="text-lg font-medium text-[#5b3a28]">{item.label}</span>
-
-              <div className="flex items-center gap-2">
-                <button
-                  className="w-8 h-8 rounded-full bg-[#452e1c] text-white"
-                  onClick={() => updateItem(item.id, items[item.id] - 1)}
-                >
-                  -
-                </button>
-
-                <span className="text-lg font-semibold">{items[item.id]}</span>
-
-                <button
-                  className="w-8 h-8 rounded-full bg-[#452e1c] text-white"
-                  onClick={() => updateItem(item.id, items[item.id] + 1)}
-                >
-                  +
-                </button>
+    <>
+    <HomeButton/>
+      <div className="min-h-screen bg-[#f7f2eb] px-6 py-10">
+  
+        <h1 className="text-3xl font-bold text-center text-[#5b3a28] mb-6">
+          Book Your Slot
+        </h1>
+  
+        <div className="bg-white p-6 rounded-3xl shadow-lg border border-[#d9cbb8] max-w-lg mx-auto">
+  
+          {/* <p className="text-center text-[#452e1c] font-semibold mb-4">
+            Selected Slot: <span className="text-black">{slotId}</span>
+          </p> */}
+  
+          {/* Name */}
+          <input
+            type="text"
+            placeholder="Your Name"
+            className="w-full py-3 px-4 bg-[#faf6f0] border border-[#d8c5a8] rounded-xl mb-4"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+  
+  
+          <h2 className="text-xl font-semibold text-[#452e1c] mt-4 mb-2">Your Order</h2>
+  
+          <div className="space-y-4">
+            {menuItems.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center justify-between p-3 border rounded-xl bg-[#faf6f0] border-[#d8c5a8]"
+              >
+                <span className="text-lg font-medium text-[#5b3a28]">{item.label}</span>
+  
+                <div className="flex items-center gap-2">
+                  <button
+                    className="w-8 h-8 rounded-full bg-[#452e1c] text-white"
+                    onClick={() => updateItem(item.id, items[item.id] - 1)}
+                  >
+                    -
+                  </button>
+  
+                  <span className="text-lg font-semibold">{items[item.id]}</span>
+  
+                  <button
+                    className="w-8 h-8 rounded-full bg-[#452e1c] text-white"
+                    onClick={() => updateItem(item.id, items[item.id] + 1)}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+  
+          <button
+            onClick={handleSubmit}
+            className="w-full mt-6 bg-[#452e1c] text-white py-3 rounded-xl text-lg font-semibold shadow hover:opacity-90 active:scale-95 transition"
+          >
+            Confirm Booking
+          </button>
         </div>
-
-        <button
-          onClick={handleSubmit}
-          className="w-full mt-6 bg-[#452e1c] text-white py-3 rounded-xl text-lg font-semibold shadow hover:opacity-90 active:scale-95 transition"
-        >
-          Confirm Booking
-        </button>
       </div>
-    </div>
+    </>
   );
 }

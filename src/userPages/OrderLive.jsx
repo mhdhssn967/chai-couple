@@ -1,75 +1,169 @@
 import { useEffect, useState } from "react";
 import { db } from "../../firebaseConfig";
-import { doc, collection, onSnapshot, query, where, orderBy, limit } from "firebase/firestore";
-import { Ticket, User, Coffee } from "lucide-react";
+import {
+  collection,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+  where
+} from "firebase/firestore";
+import HomeButton from "../components/HomeButton";
+import OrderToken from "./OrderToken";
+import { getActiveUserTokens } from "../services/firebaseUserServices";
 
-export default function OrderLive({ slotId, userId }) {
-  const [currentOrder, setCurrentOrder] = useState(null);
-  const [userOrders, setUserOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function OrderLive() {
+  const [activeSlot, setActiveSlot] = useState(null);
+  const [live, setLive] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [myOrder, setMyOrder] = useState(null);
 
+  // 1️⃣ SUBSCRIBE TO ACTIVE LIVE ORDER SESSION
   useEffect(() => {
-    if (!slotId) return;
+    const q = query(
+      collection(db, "liveOrder"),
+      where("isActive", "==", true)
+    );
 
-    // Listen to all orders for this slot in real-time
-    const ordersRef = collection(db, "Bookings", slotId, "userBookings");
-    const q = query(ordersRef, orderBy("tokenNumber", "asc"));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const orders = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-
-      // Find the first active order
-      const activeOrder = orders.find((o) => o.status === "started");
-      setCurrentOrder(activeOrder || null);
-
-      // Filter orders that belong to the logged-in user
-      const myOrders = orders.filter((o) => o.userId === userId);
-      setUserOrders(myOrders);
-
-      setLoading(false);
+    const unsub = onSnapshot(q, (snap) => {
+      if (!snap.empty) {
+        const slot = { id: snap.docs[0].id, ...snap.docs[0].data() };
+        setActiveSlot(slot);
+      } else {
+        setActiveSlot(null);
+      }
     });
 
-    return () => unsubscribe();
-  }, [slotId, userId]);
+    return () => unsub();
+  }, []);
 
-  if (loading)
-    return <p className="text-[#6b4f36] text-center mt-10">Loading live status...</p>;
+  // 2️⃣ SUBSCRIBE TO LIVE ORDER UPDATES
+  useEffect(() => {
+    if (!activeSlot) return;
 
-  if (!currentOrder)
-    return <p className="text-[#6b4f36] text-center mt-10">No order is being served right now.</p>;
+    const ref = doc(db, "liveOrder", activeSlot.slotId);
+    const unsub = onSnapshot(ref, (snap) => {
+      if (snap.exists()) setLive(snap.data());
+    });
 
-  const isMyTurn = userOrders.some((o) => o.tokenNumber === currentOrder.tokenNumber);
+    return () => unsub();
+  }, [activeSlot]);
+
+  // 3️⃣ SUBSCRIBE TO ALL ORDERS IN ACTIVE SLOT
+  useEffect(() => {
+    if (!activeSlot) return;
+
+    const userBookingsRef = collection(
+      db,
+      "Bookings",
+      activeSlot.slotId,
+      "userBookings"
+    );
+
+    const q = query(userBookingsRef, orderBy("tokenNumber", "asc"));
+
+    const unsub = onSnapshot(q, (snap) => {
+      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setOrders(list);
+
+    });
+
+    return () => unsub();
+  }, [activeSlot]);
+
+
+  useEffect(()=>{
+    const fetchUserToken= async()=>{
+        const uToken = await getActiveUserTokens() 
+      if (uToken) {
+        const mine = uToken;
+        console.log(mine);
+        
+        setMyOrder(mine || null);
+      }
+    };fetchUserToken()
+  },[])
+
+  // 4️⃣ LOADING UI
+  if (!activeSlot || !live) {
+    return (
+      <>
+      <HomeButton/>
+        <div className="w-full h-screen flex flex-col items-center justify-center bg-[#f8f3e6]">
+          <img src="/logo.png" className="w-24 opacity-80 mb-4" />
+          <p className="text-[#5b3a28] text-xl font-semibold">Loading live updates...</p>
+        </div>
+      </>
+    );
+  }
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-[#f4ede4] rounded-3xl shadow-lg border border-[#e6d8c5] text-center">
-      <h2 className="text-xl font-bold text-[#452e1c] mb-4">Now Serving</h2>
-
-      <div className="flex flex-col items-center gap-3 bg-white p-4 rounded-xl shadow-md">
-        <Ticket size={32} className="text-[#452e1c]" />
-        <p className="text-lg font-semibold text-[#6b4f36]">Token #{currentOrder.tokenNumber}</p>
-        <p className="text-sm text-[#8c6f4b]">Name: {currentOrder.name}</p>
-
-        {isMyTurn && (
-          <p className="mt-2 text-green-700 font-bold text-lg">🎉 It's your turn!</p>
-        )}
-      </div>
-
-      {/* Optional: Show user's upcoming orders */}
-      {userOrders.length > 0 && (
-        <div className="mt-6 text-[#6b4f36] text-left">
-          <h3 className="font-semibold mb-2">Your Orders:</h3>
-          <ul className="list-disc ml-6">
-            {userOrders.map((o) => (
-              <li key={o.id}>
-                Token #{o.tokenNumber} - {Object.entries(o.items)
-                  .filter(([_, qty]) => qty > 0)
-                  .map(([name, qty]) => `${name} x${qty}`)
-                  .join(", ")}
-              </li>
-            ))}
-          </ul>
+    <>
+    <HomeButton/>
+      <div className="min-h-screen p-5">
+  
+        {/* HEADER */}
+        <div className="flex justify-center mb-6">
+          <img src="/logo.png" width="90" alt="logo" />
         </div>
-      )}
-    </div>
+  
+        {/* CURRENT & NEXT TOKEN */}
+        <div className="grid grid-cols-2 gap-4 mb-5">
+          
+          {/* Current Token */}
+          <div className="bg-white border border-[#d9cbb8] p-6 rounded-3xl shadow">
+            <h2 className="text-sm text-[#5b3a28] opacity-70 text-center">Current Token</h2>
+            <div className="text-5xl font-bold text-center text-[#452e1c] mt-2">
+              {live.tokenNumber}
+            </div>
+          </div>
+  
+          {/* Next Token */}
+          <div className="bg-white border border-[#d9cbb8] p-6 rounded-3xl shadow">
+            <h2 className="text-sm text-[#5b3a28] opacity-70 text-center">Next Token</h2>
+            <div className="text-5xl font-bold text-center text-[#5b3a28] mt-2">
+              {live.nextToken}
+            </div>
+          </div>
+        </div>
+  
+        {/* YOUR TOKEN CARD */}
+        {myOrder && myOrder.map((order)=>
+          <div className="bg-[#f4f0de] border-2 border-[#452e1c] p-6 rounded-3xl shadow mb-6">
+            <h2 className="text-2xl text-center font-semibold text-[#452e1c] mb-1">
+              Your Token
+            </h2>
+            <div className="text-6xl font-extrabold text-center text-[#452e1c]">
+              {order.tokenNumber}
+            </div>
+            <p className="text-center text-lg mt-2 text-[#5b3a28]">
+              Status: {order.bookingData.status || "pehnding"}
+            </p>
+          </div>
+        )}
+  
+        {/* ALL TOKENS LIST */}
+        <div className="bg-white border border-[#d9cbb8] p-5 rounded-3xl shadow">
+          <h2 className="text-xl font-semibold text-[#452e1c] mb-3">All Orders</h2>
+  
+          <div className="max-h-96 overflow-y-auto pr-2">
+            {orders.map((o) => (
+              <div
+                key={o.id}
+                className={`flex justify-between items-center p-4 mb-2 rounded-xl border 
+                ${
+                  o.tokenNumber === live.tokenNumber
+                    ? "bg-[#452e1c] text-white border-[#452e1c]"
+                    : "bg-[#f8f3e6] text-[#5b3a28] border-[#d9cbb8]"
+                }`}
+              >
+                <span className="font-medium">Token #{o.tokenNumber}</span>
+                <span className="opacity-70 text-sm">{o.status || "pending"}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

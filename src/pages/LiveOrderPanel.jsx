@@ -2,7 +2,7 @@ import { useState } from "react";
 import { CheckCircle, XCircle, Clock, Torus, Coffee, CakeSlice } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { db } from "../../firebaseConfig";
- import { collection, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
+ import { collection, query, where, getDocs, updateDoc, doc, increment } from "firebase/firestore";
 
 export default function LiveOrderPanel({ orders, slot, update, setUpdate }) {
 
@@ -19,8 +19,10 @@ export default function LiveOrderPanel({ orders, slot, update, setUpdate }) {
       </>
     );
   }
+const [loading, setLoading] = useState(false);
 
   const [index, setIndex] = useState(0);
+
 
   const [statusMap, setStatusMap] = useState(
     orders.reduce((acc, o) => ({ ...acc, [o.orderId]: "pending" }), {})
@@ -35,6 +37,8 @@ const updateStatus = async (status) => {
   if (!current) return;
 
   try {
+    setLoading(true); // ⬅ Start loading popup
+
     // Save history
     setHistory((prev) => [
       ...prev,
@@ -43,7 +47,7 @@ const updateStatus = async (status) => {
 
     console.log("Searching for order:", current.orderId);
 
-    // 1. Query the matching document
+    // 1. Find matching user order
     const q = query(
       collection(db, "Bookings", current.slotId, "userBookings"),
       where("orderId", "==", current.orderId)
@@ -53,33 +57,58 @@ const updateStatus = async (status) => {
 
     if (snap.empty) {
       console.error("No matching order found for:", current.orderId);
+      setLoading(false);
       return;
     }
 
-    // 2. Update the document (usually only one match)
     const orderDoc = snap.docs[0];
     const orderRef = orderDoc.ref;
 
+    // 2. Update user order status
     await updateDoc(orderRef, { status });
 
     console.log("Updated Firestore for:", current.orderId, status);
 
-    // 3. Update local UI
+    // 3. Updating LIVE ORDER system
+    const liveRef = doc(db, "liveOrder", current.slotId);
+
+    if (status === "completed") {
+      await updateDoc(liveRef, {
+        tokenNumber: increment(1),
+        nextToken: increment(1),
+        tokensLeft: increment(-1),
+        updatedAt: new Date(),
+        tokensGiven:increment(1)
+      });
+    }else{
+       await updateDoc(liveRef, {
+        tokenNumber: increment(1),
+        nextToken: increment(1),
+        updatedAt: new Date(),
+      });
+    }
+
+    // 4. Update UI
     setStatusMap((prev) => ({
       ...prev,
       [current.orderId]: status,
     }));
 
-    // 4. Move to next order
+    // 5. Move to next order
     setIndex((prev) => 
       prev < orders.length - 1 ? prev + 1 : prev
     );
-    setUpdate(!update)
+
+    setUpdate(!update);
 
   } catch (err) {
     console.error("Error updating status:", err);
+
+  } finally {
+    setLoading(false); // ⬅ Finish loading popup
   }
 };
+
 
 const getRowColor=(status)=>
   status === "waiting"
@@ -165,6 +194,13 @@ const getRowColor=(status)=>
 
         {/* ORDER CARD */}
         <AnimatePresence mode="wait">
+          {loading && (
+  <div className="fixed inset-0 flex items-center justify-center z-50">
+    <div className="bg-green-300 text-black p-6 rounded-xl shadow-xl text-lg font-semibold animate-pulse">
+      Updating…
+    </div>
+  </div>
+)}
           {current && (
             <motion.div
               key={current.orderId}

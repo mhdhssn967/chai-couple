@@ -2,10 +2,26 @@
 
 body{
   background-color: #f4f0de;
+  background-image: url(/bg.png);
+  background-size: contain;
+  /* background-blend-mode:screen; */
+  background-attachment: fixed;
 }
 *{
   font-family: "Open Sans", sans-serif;
+  /* animation: 0.5s fade; */
 }
 button:hover{
   cursor: pointer !important;
+}
+@keyframes fade {
+  0%{
+    filter: opacity(0);
+  }
+  100%{
+    filter: opacity(100);
+  }
+}
+.main-container, .main-container div{
+  animation: 0.5s fade;
 }

@@ -183,3 +183,40 @@ export async function getActiveSlotWithOrders() {
     return { orders: [] };
   }
 }
+
+
+// 
+export const getOrdersCount = async (slotId) => {
+  try {
+    const ref = collection(db, "Bookings", slotId, "userBookings");
+    const snap = await getDocs(ref);
+
+    return snap.size; // ⬅ returns number of docs
+  } catch (err) {
+    console.error("Error fetching order count:", err);
+    return 0;
+  }
+};
+
+// slot stop
+export async function stopSlot(slotId) {
+  try {
+    if (!slotId) throw new Error("Slot ID missing");
+
+    // 1️⃣ Mark the slot as stopped
+    await updateDoc(doc(db, "slots", slotId), {
+      isStarted: false,
+      updatedAt: new Date(),
+    });
+
+    // 2️⃣ Delete the liveOrder document
+    await deleteDoc(doc(db, "liveOrder", slotId));
+
+    console.log("Slot stopped & live order removed:", slotId);
+    return true;
+
+  } catch (error) {
+    console.error("Error stopping slot:", error);
+    return false;
+  }
+}

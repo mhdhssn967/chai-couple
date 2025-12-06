@@ -1,5 +1,6 @@
-import { PlusCircle, List, Coffee, Settings } from "lucide-react";
+import { PlusCircle, List, Coffee, Settings, SquareMenu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import HomeBanner from "../components/HomeBanner";
 
 export default function AdminHomePage() {
   const navigate = useNavigate();
@@ -22,30 +23,19 @@ export default function AdminHomePage() {
     },
     {
       name: "Menu",
-      icon: Settings,
+      icon: SquareMenu,
       path: "/menu"
     }
   ];
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center p-4">
-      
+      <HomeBanner/>
       {/* Banner */}
-      <div className="w-full h-64 overflow-hidden rounded-b-3xl">
-        <div className="relative w-full h-64">
-          <img
-            src="./chai.jpg"
-            alt="Chai Banner"
-            className="w-full h-full object-cover rounded-b-3xl"
-          />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <h1 className="text-white text-3xl font-bold drop-shadow-lg mt-50">Chai Couple</h1>
-          </div>
-        </div>
-      </div>
+      
 
       {/* Buttons Grid */}
-      <div className="w-full max-w-md grid grid-cols-2 gap-4 mt-6">
+      <div className="w-full max-w-md grid grid-cols-2 gap-4 mt-6 text-[#5b3a28]">
         {buttons.map((btn, idx) => {
           const Icon = btn.icon;
           return (

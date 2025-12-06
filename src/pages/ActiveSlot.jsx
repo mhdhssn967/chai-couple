@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Calendar, Clock, MapPin, Timer } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { collection, doc, getDocs, updateDoc } from "firebase/firestore";
+import { collection, doc, getDocs, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
-import { isAdmin } from "../services/firebaseService";
+import { getOrdersCount, isAdmin } from "../services/firebaseService";
 
 
 export default function ActiveSlot({ slot }) {
@@ -68,16 +68,31 @@ export default function ActiveSlot({ slot }) {
       return;
     }
 
-    // 3️⃣ No active slot → Start new one
+    const totalOrder=await getOrdersCount(slotId)
+    // 3️⃣ Start the slot
     await updateDoc(doc(db, "slots", slotId), { isStarted: true });
 
-    console.log("Slot started:", slotId);
+    // 4️⃣ Create Live Order Path
+    await setDoc(doc(db, "liveOrder", slotId), {
+      tokenNumber: 1,
+      tokensGiven: 0,
+      tokensLeft: totalOrder,
+      nextToken: 2,
+      isActive: true,
+      slotId: slotId,
+      startedAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    console.log("Live order initialized for slot:", slotId);
+
     navigate("/live-order");
 
   } catch (error) {
     console.error("Error starting slot:", error);
   }
 };
+
 
   return (
     <div className="w-full px-2 py-3 flex flex-col items-center">
@@ -151,7 +166,7 @@ export default function ActiveSlot({ slot }) {
     onClick={() => navigate(`/book/${slot.id}`)}
     className="w-full mt-6 bg-[#452e1c] text-white py-3 rounded-xl text-lg font-semibold shadow hover:opacity-90 active:scale-95 transition"
   >
-    {slot.isStarted ? "Go to Live Panel" : "Book now"}
+    Book now
   </button>
 )}
       </div>

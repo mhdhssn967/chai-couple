@@ -1,6 +1,7 @@
-import { Clock, Ticket, Coffee, Menu as MenuIcon } from "lucide-react";
+import { Clock, Ticket, Coffee, Menu as MenuIcon, SquareMenu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
+import HomeBanner from "../components/HomeBanner";
 
 export default function UserHomePage() {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ export default function UserHomePage() {
     { name: "View Open Slots", icon: Clock, path: "/view-slots", protected: true },
     { name: "My Token", icon: Ticket, path: "/my-token", protected: true },
     { name: "Live Order Status", icon: Coffee, path: "/order-status", protected: true },
-    { name: "Menu", icon: MenuIcon, path: "/menu", protected: false }
+    { name: "Menu", icon: SquareMenu, path: "/menu", protected: false }
   ];
 
   const handleClick = (btn) => {
@@ -23,21 +24,9 @@ export default function UserHomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f2ec] flex flex-col items-center">
+    <div className="min-h-screen flex flex-col items-center">
       {/* Hero Section */}
-      <div className="w-full h-72 relative rounded-b-3xl overflow-hidden shadow-md">
-        <img
-          src="./chai.jpg"
-          alt="Chai Couple Banner"
-          className="w-full h-full object-cover brightness-75"
-        />
-        <div className="absolute inset-0 flex flex-col justify-center items-center text-center">
-          <h1 className="text-white text-4xl font-extrabold drop-shadow-2xl">Chai Couple</h1>
-          <p className="text-white mt-3 text-lg font-medium drop-shadow">
-            Fresh. Warm. Made with Love.
-          </p>
-        </div>
-      </div>
+      <HomeBanner/>
 
       {/* Greeting */}
       <div className="w-full max-w-md mt-6 px-4">
