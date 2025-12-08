@@ -9,14 +9,16 @@ import {
   where
 } from "firebase/firestore";
 import HomeButton from "../components/HomeButton";
-import OrderToken from "./OrderToken";
 import { getActiveUserTokens } from "../services/firebaseUserServices";
+
 
 export default function OrderLive() {
   const [activeSlot, setActiveSlot] = useState(null);
   const [live, setLive] = useState(null);
   const [orders, setOrders] = useState([]);
   const [myOrder, setMyOrder] = useState(null);
+
+  
 
   // 1️⃣ SUBSCRIBE TO ACTIVE LIVE ORDER SESSION
   useEffect(() => {
@@ -77,8 +79,7 @@ export default function OrderLive() {
         const uToken = await getActiveUserTokens() 
       if (uToken) {
         const mine = uToken;
-        console.log(mine);
-        
+
         setMyOrder(mine || null);
       }
     };fetchUserToken()
@@ -89,9 +90,9 @@ export default function OrderLive() {
     return (
       <>
       <HomeButton/>
-        <div className="w-full h-screen flex flex-col items-center justify-center bg-[#f8f3e6]">
+        <div className="w-full h-screen flex flex-col items-center justify-center ">
           <img src="/logo.png" className="w-24 opacity-80 mb-4" />
-          <p className="text-[#5b3a28] text-xl font-semibold">Loading live updates...</p>
+          <p className="text-[#5b3a28] text-xl font-semibold">No slot started</p>
         </div>
       </>
     );
@@ -106,11 +107,36 @@ export default function OrderLive() {
         <div className="flex justify-center mb-6">
           <img src="/logo.png" width="90" alt="logo" />
         </div>
-  
+   {myOrder && myOrder.map((order)=>
+          order.tokenNumber==live.nextToken&&
+          
+            <div className="flex items-center justify-center gap-2 bg-[#fff7e6] border border-[#e8d3a8] text-[#5b3a28] font-semibold px-4 py-3 mb-5 rounded-2xl shadow">
+    <span className="text-lg">🎉</span>
+    <p className="text-base">Its your order next</p>
+  </div>
+      )}
+
+      {myOrder && myOrder.map((order)=>
+          order.tokenNumber==live.tokenNumber&&
+          
+            <div className="flex items-center justify-center gap-2 bg-[#fff7e6] border border-[#e8d3a8] text-[#5b3a28] font-semibold px-4 py-3 mb-5 rounded-2xl shadow">
+    <span className="text-lg">🎉</span>
+    <p className="text-base">Yaayy! Your order is here!</p>
+  </div>
+      )}
+
+      
         {/* CURRENT & NEXT TOKEN */}
         <div className="grid grid-cols-2 gap-4 mb-5">
+
           
           {/* Current Token */}
+          {myOrder&& myOrder.map((o)=>{
+             o.tokenNumber==live.tokenNumber&&
+            <div>
+             Yay your order is here
+            </div>
+          })}
           <div className="bg-white border border-[#d9cbb8] p-6 rounded-3xl shadow">
             <h2 className="text-sm text-[#5b3a28] opacity-70 text-center">Current Token</h2>
             <div className="text-5xl font-bold text-center text-[#452e1c] mt-2">
@@ -119,6 +145,7 @@ export default function OrderLive() {
           </div>
   
           {/* Next Token */}
+    
           <div className="bg-white border border-[#d9cbb8] p-6 rounded-3xl shadow">
             <h2 className="text-sm text-[#5b3a28] opacity-70 text-center">Next Token</h2>
             <div className="text-5xl font-bold text-center text-[#5b3a28] mt-2">
@@ -126,6 +153,7 @@ export default function OrderLive() {
             </div>
           </div>
         </div>
+
   
         {/* YOUR TOKEN CARD */}
         {myOrder && myOrder.map((order)=>
@@ -137,7 +165,7 @@ export default function OrderLive() {
               {order.tokenNumber}
             </div>
             <p className="text-center text-lg mt-2 text-[#5b3a28]">
-              Status: {order.bookingData.status || "pehnding"}
+              Status: {order.bookingData.status || "pending"}
             </p>
           </div>
         )}

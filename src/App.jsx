@@ -38,7 +38,6 @@ function App() {
               <Route path="/admin" element={<AdminHomePage />} />
               <Route path="/menu" element={<Menu />} />
               <Route path="/login" element={<LoginRegister />} />
-              <Route path="/book/:slotId" element={<BookSlotPage />} />
               <Route path="/my-token" element={<OrderToken />} />
 
               {/* Protected */}
@@ -50,6 +49,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route path="/book/:slotId" 
+              element={
+              <ProtectedRoute>
+                <BookSlotPage />
+              </ProtectedRoute>
+            } 
+            />
+
 
               <Route
                 path="/order-status"

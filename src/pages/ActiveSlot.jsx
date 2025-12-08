@@ -4,12 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { collection, doc, getDocs, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { getOrdersCount, isAdmin } from "../services/firebaseService";
-
+import { getAuth, signInAnonymously } from "firebase/auth";
 
 export default function ActiveSlot({ slot }) {
   const [countdown, setCountdown] = useState("");
   const [admin,setAdmin]=useState(false)
-
 
   useEffect(()=>{
     const checkAdmin=async()=>{
@@ -35,7 +34,7 @@ export default function ActiveSlot({ slot }) {
       const diff = start - now;
 
       if (diff <= 0) {
-        setCountdown("Starting now");
+        setCountdown("Started");
         return;
       }
 
@@ -93,6 +92,30 @@ export default function ActiveSlot({ slot }) {
   }
 };
 
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+ const handleClick = async (path) => {
+  // If user clicked the login button, don't auto-login anonymously
+  if (path === "/login") {
+    return navigate("/login");
+  }
+
+  // If user is already logged in, just navigate
+  if (user) {
+    return navigate(path);
+  }
+
+  // If user NOT logged in → auto anonymous login
+  try {
+    const res = await signInAnonymously(auth);
+    console.log("Anonymous login success:", res.user.uid);
+    navigate(path);
+  } catch (err) {
+    console.error("Anon login failed:", err);
+    navigate("/login"); // fallback
+  }
+};
 
   return (
     <div className="w-full px-2 py-3 flex flex-col items-center">
@@ -163,7 +186,7 @@ export default function ActiveSlot({ slot }) {
         </>}
         {!admin && (
   <button
-    onClick={() => navigate(`/book/${slot.id}`)}
+    onClick={()=>handleClick(`/book/${slot.id}`)}
     className="w-full mt-6 bg-[#452e1c] text-white py-3 rounded-xl text-lg font-semibold shadow hover:opacity-90 active:scale-95 transition"
   >
     Book now
