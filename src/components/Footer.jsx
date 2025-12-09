@@ -6,56 +6,42 @@ export default function Footer() {
       <div
         className="
           w-full
-          h-24
-          rounded-t-[45px]
-          flex flex-col
-          items-center
-          justify-center
-          text-white
-          shadow-[0_-4px_20px_rgba(0,0,0,0.4)]
-          pt-6
-          pb-4
+          h-14
+          flex items-center justify-between
+          px-6
+          text-white text-xs
+          rounded-t-3xl
+          shadow-[0_-2px_12px_rgba(0,0,0,0.3)]
+          backdrop-blur-md
+          border-t border-white/10
           relative
-          overflow-hidden
         "
         style={{
           background:
-            "linear-gradient(135deg, #2d1a0f 0%, #4a2e1b 40%, #6b4527 100%)",
+            "linear-gradient(135deg, #3c2415 0%, #5b3a28 50%, #7a5335 100%)",
         }}
       >
-        {/* Gloss Shine */}
-        <div
-          className="
-            absolute inset-0 
-            pointer-events-none 
-            opacity-20
-            bg-gradient-to-t 
-            from-transparent 
-            to-white
-          "
-        />
+        {/* Left: Copyright */}
+        <p className="opacity-70 text-[11px]">
+          © {new Date().getFullYear()} Chai Couple
+        </p>
 
-        {/* Social Icons */}
-        <div className="flex gap-8 z-10">
+        {/* Right: Icons */}
+        <div className="flex gap-5">
           <a
             href="#"
-            className="hover:scale-125 transition-all hover:opacity-90 hover:drop-shadow-[0_0_5px_white]"
+            className="opacity-80 hover:opacity-100 hover:scale-110 transition-all"
           >
-            <Facebook size={18} />
+            <Facebook size={16} />
           </a>
 
           <a
             href="#"
-            className="hover:scale-125 transition-all hover:opacity-90 hover:drop-shadow-[0_0_5px_white]"
+            className="opacity-80 hover:opacity-100 hover:scale-110 transition-all"
           >
-            <Instagram size={18} />
+            <Instagram size={16} />
           </a>
         </div>
-
-        {/* Footer Text */}
-        <p className="text-xs mt-3 opacity-75 z-10 tracking-wide">
-          © {new Date().getFullYear()} The Chai Couple • All Rights Reserved
-        </p>
       </div>
     </footer>
   );

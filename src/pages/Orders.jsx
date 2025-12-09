@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import { Ticket, User, Coffee, Torus, CakeSlice } from "lucide-react";
 import { getOrdersForSlot } from "../services/firebaseService";
 import HomeButton from "../components/HomeButton";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 
 export default function Orders() {
@@ -54,6 +56,43 @@ export default function Orders() {
       </div>
     );
 
+    const downloadExcel = () => {
+  if (orders.length === 0) {
+    Swal.fire("No Data", "There are no orders to download.", "warning");
+    return;
+  }
+
+  // Convert orders into a flat table-friendly structure
+  const formatted = orders.map((o) => ({
+    Token: o.tokenNumber,
+    Name: o.name,
+    Iranitea: o.items?.iranitea || 0,
+    Bunmaska: o.items?.bunmaska || 0,
+    Tiramisu: o.items?.tiramisu || 0,
+    TotalAmount: o.totalAmount || 0,
+    ExpectedDelivery: o.expectedDelivery || "",
+    Status: o.status || "Pending",
+  }));
+
+  // Create worksheet & workbook
+  const worksheet = XLSX.utils.json_to_sheet(formatted);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
+
+  // Convert to Blob
+  const excelBuffer = XLSX.write(workbook, {
+    bookType: "xlsx",
+    type: "array",
+  });
+
+  const blob = new Blob([excelBuffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+
+  // Trigger download
+  saveAs(blob, `orders_${slotId}.xlsx`);
+};
+
   return (
     <>
     <HomeButton/>
@@ -92,7 +131,15 @@ export default function Orders() {
     
     </div>
     
-    
+    <div className="flex justify-end mb-4">
+  <button
+    onClick={downloadExcel}
+    className="bg-[#452e1c] text-white px-4 py-2 rounded-xl shadow hover:bg-[#5b3a28] transition"
+  >
+    Download Excel
+  </button>
+</div>
+
           {/* ======================= ORDERS TABLE ======================= */}
           <div className="bg-white shadow-lg rounded-3xl overflow-hidden border border-[#e6d8c5]">
             <table className="w-full border-collapse">

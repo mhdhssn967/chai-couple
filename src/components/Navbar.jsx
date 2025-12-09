@@ -1,8 +1,8 @@
-import { LogOut } from "lucide-react";
+import { LogOut, Coffee, Menu } from "lucide-react";
 import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 
-export default function Navbar({ title = "The Chai Couple Chafe" }) {
+export default function Navbar({ title = "The Chai Couple Café" }) {
   const auth = getAuth();
   const navigate = useNavigate();
 
@@ -16,34 +16,54 @@ export default function Navbar({ title = "The Chai Couple Chafe" }) {
   };
 
   return (
-    <nav className="w-full shadow-md bg-gradient-to-r from-[#5e3d28] via-[#824f2a] to-[#b57a4a]">
-      <div className="flex justify-between items-center px-5 py-3">
+    <nav className="
+      sticky top-0 z-50 
+      backdrop-blur-lg bg-[#5e3d28]/90
+      shadow-lg border-b border-white/20
+    ">
+      <div className="flex justify-between items-center px-5 py-2">
 
-        {/* --- Left: Logo & Title --- */}
+        {/* LEFT SIDE — LOGO + TITLE */}
         <div className="flex items-center gap-3">
-          <div className="rounded-full overflow-hidden shadow-md border border-white/20">
-            <img width="42px" src="./logo.png" alt="logo" />
+          <div className="rounded-full overflow-hidden border border-white/30 shadow-md">
+            <img width="45" src="./logo.png" alt="logo" />
           </div>
 
-          <span className="text-white text-lg font-semibold drop-shadow-sm tracking-wide"
-                style={{ fontSize: "15px" }}>
-            {/* {title} */}
-          </span>
+          <div className="flex flex-col leading-tight">
+            <span className="text-white font-semibold tracking-wide text-sm">
+              {title}
+            </span>
+            <span className="text-white/60 text-[10px] -mt-1 tracking-wider">
+              EST. 2025
+            </span>
+          </div>
         </div>
 
-        {/* --- Right: Logout Area --- */}
-        <div className="flex flex-col items-center">
+        {/* RIGHT SIDE — BUTTONS */}
+        <div className="flex items-center gap-3">
+
+          {/* Decorative Coffee Icon */}
+          <div className="hidden sm:flex items-center justify-center">
+            <Coffee size={20} className="text-white opacity-80" />
+          </div>
+
+          {/* Logout Button */}
           {/* <button
             onClick={handleLogout}
-            className="flex items-center gap-1 bg-[#fff9e6] text-[#5b3a28] px-4 py-1.5 
-                       rounded-full shadow hover:scale-105 active:scale-95 
-                       transition-all border border-[#e7d5b5]"
+            className="
+              flex items-center gap-1 px-3 py-1.5 rounded-full
+              bg-white/20 backdrop-blur-lg
+              text-white text-sm font-medium
+              border border-white/30
+              shadow hover:shadow-md 
+              hover:bg-white/30 active:scale-95
+              transition-all
+            "
           >
-            <LogOut size={18} color="#5b3a28" />
-            <span className="text-sm font-medium"></span>
+            <LogOut size={16} />
+            Logout
           </button> */}
 
-         
         </div>
 
       </div>

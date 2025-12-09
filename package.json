@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "file-saver": "^2.0.5",
     "firebase": "^12.6.0",
     "framer-motion": "^12.23.25",
     "html-to-image": "^1.11.13",
@@ -17,7 +18,8 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.6",
-    "sweetalert2": "^11.26.3"
+    "sweetalert2": "^11.26.3",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
