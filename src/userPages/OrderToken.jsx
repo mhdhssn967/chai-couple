@@ -22,7 +22,7 @@ export default function OrderToken() {
   }, [userId]);
 
   const calculateTotal = (items) => {
-    const prices = { chai: 20, bun: 30, tiramisu: 30 };
+    const prices = { iranitea: 20, bunmaska: 30, tiramisu: 30 };
     return Object.entries(items).reduce(
       (sum, [item, qty]) => sum + qty * prices[item],
       0
@@ -131,8 +131,8 @@ const downloadTicket = async (id, name, token) => {
                         .filter(([_, qty]) => qty > 0)
                         .map(([itemName, quantity]) => {
                           const price = {
-                            chai: 20,
-                            bun: 30,
+                            iranitea: 20,
+                            bunmaska: 30,
                             tiramisu: 30,
                           }[itemName];
 

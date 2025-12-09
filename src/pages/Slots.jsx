@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchActiveSlots, deactivateSlot } from "../services/firebaseService";
+import { fetchActiveSlots } from "../services/firebaseService";
 import ActiveSlot from "./ActiveSlot";
 import HomeButton from "../components/HomeButton";
 

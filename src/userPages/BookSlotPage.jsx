@@ -1,11 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { getAuth } from "firebase/auth";
-import { db } from "../../firebaseConfig"; 
-import { collection, addDoc, Timestamp } from "firebase/firestore";
 import Swal from "sweetalert2";
-import { ensureSlotPath, generateOrderId, getNextTokenNumber } from "../services/Helpers";
 import HomeButton from "../components/HomeButton";
+import { placeOrderAndUpdateInventory } from "../services/firebaseUserServices";
 
 export default function BookSlotPage() {
   const { slotId } = useParams();
@@ -14,14 +12,14 @@ export default function BookSlotPage() {
 
   const [name, setName] = useState("");
   const [items, setItems] = useState({
-    chai: 0,
-    bun: 0,
+    iranitea: 0,
+    bunmaska: 0,
     tiramisu: 0,
   });
 
   const menuItems = [
-    { id: "chai", label: "Irani Chai", price: 20 },
-    { id: "bun", label: "BunMuska", price: 30 },
+    { id: "iranitea", label: "Irani Tea", price: 20 },
+    { id: "bunmaska", label: "bunmaska", price: 30 },
     { id: "tiramisu", label: "Tiramisu", price: 30 }
   ];
 
@@ -37,60 +35,66 @@ export default function BookSlotPage() {
     }, 0);
   };
 
-  const handleSubmit = async () => {
-    if (!name.trim()) {
-      return Swal.fire("Missing Info", "Please fill all fields.", "warning");
-    }
+ const handleSubmit = async () => {
+  if (!name.trim()) {
+    return Swal.fire("Missing Info", "Please fill all fields.", "warning");
+  }
 
-    const totalItems = Object.values(items).reduce((sum, x) => sum + x, 0);
+  const totalItems = Object.values(items).reduce((sum, x) => sum + x, 0);
+  if (totalItems === 0) {
+    return Swal.fire("No Items", "Please order at least 1 item.", "warning");
+  }
 
-    if (totalItems === 0) {
-      return Swal.fire("No Items", "Please order at least 1 item.", "warning");
-    }
+  const totalAmount = calculateTotal();
 
-    const totalAmount = calculateTotal();
+  const confirm = await Swal.fire({
+    title: "Confirm Order?",
+    html: `<b>Total Amount: ₹${totalAmount}</b><br/>Do you want to place this order?`,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Yes, Place Order",
+  });
+  if (!confirm.isConfirmed) return;
 
-    // Ask confirmation before placing order
-    const confirm = await Swal.fire({
-      title: "Confirm Order?",
-      html: `<b>Total Amount: ₹${totalAmount}</b><br/>Do you want to place this order?`,
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Yes, Place Order",
-      cancelButtonText: "Cancel",
+  try {
+    Swal.fire({
+      title: "Booking in Progress…",
+      text: "Please wait a moment.",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      allowEnterKey: false,
+      didOpen: () => Swal.showLoading(),
     });
 
-    if (!confirm.isConfirmed) return;
+    const userData = {
+      slotId,
+      userId: auth.currentUser?.uid || null,
+      name,
+      totalAmount,
+    };
 
-    try {
-      await ensureSlotPath(slotId);
+    const { tokenNumber, expectedDelivery } =
+      await placeOrderAndUpdateInventory(slotId, userData, items);
 
-      const orderId = generateOrderId();
-      const tokenNumber = await getNextTokenNumber(slotId);
+    Swal.fire(
+      "Success!",
+      `
+       Your order is placed.<br/>
+       Token No: <b>${tokenNumber}</b><br/>
+       Expected Delivery: <b>${expectedDelivery}</b><br/>
+       Total: ₹${totalAmount}
+      `,
+      "success"
+    );
 
-      await addDoc(collection(db, "Bookings", slotId, "userBookings"), {
-        slotId,
-        userId: auth.currentUser?.uid || null,
-        name,
-        items,
-        orderId,
-        tokenNumber,
-        totalAmount,
-        timestamp: Timestamp.now()
-      });
+    navigate("/");
 
-      Swal.fire(
-        "Success!",
-        `Your order is placed.<br/>Order ID: <b>${orderId}</b><br/>Token No: <b>${tokenNumber}</b><br/>Total: ₹${totalAmount}`,
-        "success"
-      );
+  } catch (err) {
+    Swal.fire("Error", err.message, "error");
+  }
+};
 
-      navigate("/");
 
-    } catch (err) {
-      Swal.fire("Error", err.message, "error");
-    }
-  };
 
   return (
     <>

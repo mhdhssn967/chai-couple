@@ -33,7 +33,7 @@ export default function Navbar({ title = "The Chai Couple Chafe" }) {
 
         {/* --- Right: Logout Area --- */}
         <div className="flex flex-col items-center">
-          <button
+          {/* <button
             onClick={handleLogout}
             className="flex items-center gap-1 bg-[#fff9e6] text-[#5b3a28] px-4 py-1.5 
                        rounded-full shadow hover:scale-105 active:scale-95 
@@ -41,7 +41,7 @@ export default function Navbar({ title = "The Chai Couple Chafe" }) {
           >
             <LogOut size={18} color="#5b3a28" />
             <span className="text-sm font-medium"></span>
-          </button>
+          </button> */}
 
          
         </div>

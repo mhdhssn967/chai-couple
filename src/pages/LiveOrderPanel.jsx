@@ -218,11 +218,11 @@ const getRowColor=(status)=>
 
               {/* Items */}
               <div className="space-y-2 mt-3">
-                {current.items.bun > 0 && (
-                  <p className="text-[#5b3a28]" style={{display:'flex',gap:'5px'}}> <Torus />  Bun Muska × {current.items.bun}</p>
+                {current.items.bunmaska > 0 && (
+                  <p className="text-[#5b3a28]" style={{display:'flex',gap:'5px'}}> <Torus />  Bun Muska × {current.items.bunmaska}</p>
                 )}
-                {current.items.chai > 0 && (
-                  <p className="text-[#5b3a28]" style={{display:'flex',gap:'5px'}}><Coffee/> Chai × {current.items.chai}</p>
+                {current.items.iranitea > 0 && (
+                  <p className="text-[#5b3a28]" style={{display:'flex',gap:'5px'}}><Coffee/> Irani tea × {current.items.iranitea}</p>
                 )}
                 {current.items.tiramisu > 0 && (
                   <p className="text-[#5b3a28]" style={{display:'flex',gap:'5px'}}><CakeSlice/> Tiramisu × {current.items.tiramisu}</p>

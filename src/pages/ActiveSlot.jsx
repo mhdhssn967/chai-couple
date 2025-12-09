@@ -3,8 +3,9 @@ import { Calendar, Clock, MapPin, Timer } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { collection, doc, getDocs, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
-import { getOrdersCount, isAdmin } from "../services/firebaseService";
+import { deleteSlot, getOrdersCount, isAdmin, stopLiveSlot, stopSlot } from "../services/firebaseService";
 import { getAuth, signInAnonymously } from "firebase/auth";
+import Swal from "sweetalert2";
 
 export default function ActiveSlot({ slot }) {
   const [countdown, setCountdown] = useState("");
@@ -117,6 +118,99 @@ export default function ActiveSlot({ slot }) {
   }
 };
 
+
+const handleStop=async(slotId)=> {
+  // 1️⃣ Confirm
+  const confirm = await Swal.fire({
+    title: "Stop Slot?",
+    text: "Are you sure you want to stop this slot? This action cannot be undone.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, Stop It",
+    cancelButtonText: "Cancel",
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  try {
+    // 2️⃣ Show loading modal
+    Swal.fire({
+      title: "Stopping Slot…",
+      text: "Please wait.",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      allowEnterKey: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    // 3️⃣ Call both Firebase functions
+    await stopSlot(slotId);
+    await stopLiveSlot(slotId);
+
+    // 4️⃣ Success
+    Swal.fire({
+      title: "Stopped!",
+      text: "The slot has been successfully stopped.",
+      icon: "success",
+    });
+
+  } catch (err) {
+    Swal.fire({
+      title: "Error",
+      text: err.message || "Something went wrong while stopping the slot.",
+      icon: "error",
+    });
+  }
+}
+const handleDelete=async(slot)=> {
+
+  // 1️⃣ Ask confirmation
+  const confirm = await Swal.fire({
+    title: "Delete Slot?",
+    html: `
+      This will permanently deactivate this slot and move it to history.
+    `,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, Delete",
+    cancelButtonText: "Cancel",
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  try {
+    // 2️⃣ Show blocking loader
+    Swal.fire({
+      title: "Deleting Slot…",
+      text: "Please wait.",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      allowEnterKey: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    // 3️⃣ Call Firebase function
+    const success = await deleteSlot(slot);
+
+    if (!success) throw new Error("Failed to delete slot.");
+
+    // 4️⃣ Success message
+    Swal.fire({
+      title: "Slot Deleted",
+      text: "The slot has been successfully archived.",
+      icon: "success",
+    });
+
+  } catch (err) {
+    Swal.fire({
+      title: "Error",
+      text: err.message || "Something went wrong during deletion.",
+      icon: "error",
+    });
+  }
+}
+
+
   return (
     <div className="w-full px-2 py-3 flex flex-col items-center">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-lg border border-[#d9cbb8] p-6">
@@ -175,13 +269,35 @@ export default function ActiveSlot({ slot }) {
         >
           {slot.isStarted ? "Go to Live Panel" : "Start Now"}
         </button>
-        <button
-  onClick={() => viewOrders(slot.id)}
-  style={{ color: "#452e1c" }}
-  className="w-full mt-6 bg-[#f4f0de] border border-[#452e1c] text-white py-3 rounded-xl text-lg font-semibold shadow hover:opacity-90 active:scale-95 transition"
->
-  View Orders
-</button>
+
+        {slot.isStarted&&
+  <button
+          onClick={() => handleStop(slot.id)}
+          className="w-full mt-6 bg-[#312e1c] text-white py-3 rounded-xl text-lg font-semibold shadow hover:opacity-90 active:scale-95 transition"
+        >
+          Stop Slot
+        </button>
+}
+
+
+
+        <div style={{display:'flex',gap:'5px'}}>
+          <button
+    onClick={() => viewOrders(slot.id)}
+    style={{ color: "#452e1c" }}
+    className="w-full mt-6 bg-[#f4f0de] border border-[#452e1c] text-white py-3 rounded-xl text-lg font-semibold shadow hover:opacity-90 active:scale-95 transition"
+  >
+    View Orders
+  </button>
+  <button
+    onClick={() => handleDelete(slot)}
+    style={{ color: "#ffffffff" }}
+    className="w-full mt-6 bg-[#921010ff] border border-[#452e1c] text-white py-3 rounded-xl text-lg font-semibold shadow hover:opacity-90 active:scale-95 transition"
+  >
+    Delete Slot
+  </button>
+        </div>
+
 
         </>}
         {!admin && (

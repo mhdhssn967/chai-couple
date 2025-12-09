@@ -23,7 +23,7 @@ const MENU_ITEMS = [
   },
   {
     id: "m2",
-    name: "Irani Chai",
+    name: "Irani Tea",
     price: 20,
     short: "Rich, milky chai brewed slow.",
     desc: "Traditional Irani chai brewed with full-fat milk and a slow simmer to extract deep flavour. Creamy, slightly sweet, and perfect to wash down Bun Muska.",

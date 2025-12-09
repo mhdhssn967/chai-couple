@@ -13,8 +13,8 @@ export default function Orders() {
   // Totals
   const [totals, setTotals] = useState({
     totalTokens: 0,
-    chai: 0,
-    bun: 0,
+    iranitea: 0,
+    bunmaska: 0,
     tiramisu: 0,
   });
 
@@ -23,21 +23,21 @@ export default function Orders() {
       const fetched = await getOrdersForSlot(slotId);
 
       // Compute totals
-      let chai = 0;
-      let bun = 0;
+      let iranitea = 0;
+      let bunmaska = 0;
       let tiramisu = 0;
 
       fetched.forEach((o) => {
         const items = o.items || {};
-        chai += items.chai || 0;
-        bun += items.bun || 0;
+        iranitea += items.iranitea || 0;
+        bunmaska += items.bunmaska || 0;
         tiramisu += items.tiramisu || 0;
       });
 
       setTotals({
         totalTokens: fetched.length,
-        chai,
-        bun,
+        iranitea,
+        bunmaska,
         tiramisu,
       });
 
@@ -75,13 +75,13 @@ export default function Orders() {
       {/* Total Chai */}
       <div className="flex items-center gap-2">
         <Coffee size={20} className="text-[#6b4f36]" />
-        <span className="font-semibold">{totals.chai}</span>
+        <span className="font-semibold">{totals.iranitea}</span>
       </div>
     
       {/* Bun */}
       <div className="flex items-center gap-2">
         <Torus size={20} className="text-[#6b4f36]" />
-        <span className="font-semibold">{totals.bun}</span>
+        <span className="font-semibold">{totals.bunmaska}</span>
       </div>
     
       {/* Tiramisu */}
@@ -126,8 +126,8 @@ export default function Orders() {
                               key={itemName}
                               className="flex items-center gap-2 text-sm"
                             >
-                            {itemName=="chai"&&<Coffee size={16} className="text-[#452e1c]" />}
-                            {itemName=="bun"&&<Torus size={16} className="text-[#452e1c]" />}
+                            {itemName=="iranitea"&&<Coffee size={16} className="text-[#452e1c]" />}
+                            {itemName=="bunmaska"&&<Torus size={16} className="text-[#452e1c]" />}
                             {itemName=="tiramisu"&&<CakeSlice size={16} className="text-[#452e1c]" />}
     
                               <span className="font-medium capitalize">

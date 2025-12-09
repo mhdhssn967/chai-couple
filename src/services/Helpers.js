@@ -34,6 +34,14 @@ export async function getNextTokenNumber(slotId) {
 }
 
 // 🔹 Ensure Firestore path exists
-export async function ensureSlotPath(slotId) {
-  await setDoc(doc(db, "Bookings", slotId), { exists: true }, { merge: true });
+export async function ensureSlotPath(slotId, startTime, inventory) {
+  await setDoc(
+    doc(db, "Bookings", slotId),
+    {
+      exists: true,
+      startTime: startTime,
+      inventory: inventory,
+    },
+    { merge: true }
+  );
 }

@@ -1,7 +1,6 @@
-import { collection, getDocs, doc, updateDoc, addDoc, query, where, getDoc } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, addDoc, query, where, getDoc, deleteDoc, setDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig"
 import { getAuth } from "firebase/auth";
-
 // Fetch all slots
 export const fetchSlots = async () => {
   try {
@@ -51,17 +50,21 @@ export const fetchActiveSlots = async () => {
 };
 
 // Deactivate a slot and move it to previousSlots
-export const deactivateSlot = async (slot) => {
+export const deleteSlot = async (slot) => {
   try {
     // 1. Update the original slot to active = false
     const slotRef = doc(db, "slots", slot.id);
     await updateDoc(slotRef, { active: false });
 
     // 2. Add to previousSlots collection
-    await addDoc(collection(db, "previousSlots"), {
-      ...slot,
-      deactivatedAt: new Date().toISOString(),
-    });
+    await setDoc(doc(db, "previousSlots", slot.id), {
+  ...slot,
+  deactivatedAt: new Date().toISOString(),
+});
+
+  await deleteDoc(doc(db, "liveOrder", slot.id));
+
+  await deleteDoc(doc(db, "slots",slot.id))
 
     return true;
   } catch (err) {
@@ -210,7 +213,6 @@ export async function stopSlot(slotId) {
     });
 
     // 2️⃣ Delete the liveOrder document
-    await deleteDoc(doc(db, "liveOrder", slotId));
 
     console.log("Slot stopped & live order removed:", slotId);
     return true;
@@ -218,5 +220,24 @@ export async function stopSlot(slotId) {
   } catch (error) {
     console.error("Error stopping slot:", error);
     return false;
+  }
+}
+
+// stop live order
+
+export async function stopLiveSlot(slotId) {
+  try {
+    const ref = doc(db, "liveOrder", slotId);
+
+    await updateDoc(ref, {
+      isActive: false,
+      stoppedAt: new Date() // optional tracking
+    });
+
+    return { success: true, message: "Live slot stopped successfully." };
+
+  } catch (error) {
+    console.error("Error stopping live slot:", error);
+    return { success: false, error: error.message };
   }
 }

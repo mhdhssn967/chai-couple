@@ -4,6 +4,7 @@ import HomeButton from "../components/HomeButton";
 import Swal from "sweetalert2";
 import { collection, addDoc, serverTimestamp } from "../../firebaseConfig";
 import { db } from "../../firebaseConfig";
+import { ensureSlotPath } from "../services/Helpers";
 
 export default function AddSlot() {
   const [slot, setSlot] = useState({
@@ -30,58 +31,73 @@ export default function AddSlot() {
   };
 
   const handlePublish = async () => {
-    const result = await Swal.fire({
-      title: "Publish Slot?",
-      html: `
-        <p><strong>Date:</strong> ${slot.date}</p>
-        <p><strong>Time:</strong> ${formatTime(slot.timeFrom)} - ${formatTime(
-        slot.timeTo
-      )}</p>
-        <p><strong>Place:</strong> ${slot.place}</p>
-        <br/>
-        <p><strong>Inventory</strong></p>
-        <p>Bun Maska: ${slot.bunmaska}</p>
-        <p>Irani Tea: ${slot.iranitea}</p>
-        <p>Tiramisu: ${slot.tiramisu}</p>
-      `,
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Yes, Publish",
+  const result = await Swal.fire({
+    title: "Publish Slot?",
+    html: `
+      <p><strong>Date:</strong> ${slot.date}</p>
+      <p><strong>Time:</strong> ${formatTime(slot.timeFrom)} - ${formatTime(
+      slot.timeTo
+    )}</p>
+      <p><strong>Place:</strong> ${slot.place}</p>
+      <br/>
+      <p><strong>Inventory</strong></p>
+      <p>Bun Maska: ${slot.bunmaska}</p>
+      <p>Irani Tea: ${slot.iranitea}</p>
+      <p>Tiramisu: ${slot.tiramisu}</p>
+    `,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Yes, Publish",
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    // 1. Create slot document
+    const docRef = await addDoc(collection(db, "slots"), {
+      date: slot.date,
+      timeFrom: formatTime(slot.timeFrom),
+      timeTo: formatTime(slot.timeTo),
+      place: slot.place,
+      active: true,
+      createdAt: serverTimestamp(),
+      isStarted: false,
+      inventory: [
+        { name: "bunmaska", quantity: Number(slot.bunmaska) },
+        { name: "iranitea", quantity: Number(slot.iranitea) },
+        { name: "tiramisu", quantity: Number(slot.tiramisu) },
+      ],
     });
 
-    if (result.isConfirmed) {
-      try {
-        await addDoc(collection(db, "slots"), {
-          date: slot.date,
-          timeFrom: formatTime(slot.timeFrom),
-          timeTo: formatTime(slot.timeTo),
-          place: slot.place,
-          active: true,
-          createdAt: serverTimestamp(),
-          isStarted: false,
-          inventory: [
-            { name: "bunmaska", quantity: Number(slot.bunmaska) },
-            { name: "iranitea", quantity: Number(slot.iranitea) },
-            { name: "tiramisu", quantity: Number(slot.tiramisu) },
-          ],
-        });
+    const slotId = docRef.id;
 
-        Swal.fire("Published!", "Slot has been added successfully.", "success");
-        setSlot({
-          date: "",
-          timeFrom: "",
-          timeTo: "",
-          place: "",
-          bunmaska: "",
-          iranitea: "",
-          tiramisu: "",
-        });
-      } catch (error) {
-        console.error("Error adding slot:", error);
-        Swal.fire("Error", "Failed to add slot. Try again.", "error");
-      }
-    }
-  };
+    // 2. Inventory for Bookings path
+    const inventoryObject = {
+      bunmaska: Number(slot.bunmaska),
+      iranitea: Number(slot.iranitea),
+      tiramisu: Number(slot.tiramisu),
+    };
+
+    // 3. Create Bookings/<slotId>
+    await ensureSlotPath(slotId, slot.timeFrom, inventoryObject);
+
+    Swal.fire("Published!", "Slot has been added successfully.", "success");
+
+    setSlot({
+      date: "",
+      timeFrom: "",
+      timeTo: "",
+      place: "",
+      bunmaska: "",
+      iranitea: "",
+      tiramisu: "",
+    });
+  } catch (error) {
+    console.error("Error adding slot:", error);
+    Swal.fire("Error", "Failed to add slot. Try again.", "error");
+  }
+};
+
 
   return (
     <>
