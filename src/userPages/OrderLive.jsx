@@ -175,21 +175,40 @@ export default function OrderLive() {
           <h2 className="text-xl font-semibold text-[#452e1c] mb-3">All Orders</h2>
   
           <div className="max-h-96 overflow-y-auto pr-2">
-            {orders.map((o) => (
-              <div
-                key={o.id}
-                className={`flex justify-between items-center p-4 mb-2 rounded-xl border 
-                ${
-                  o.tokenNumber === live.tokenNumber
-                    ? "bg-[#452e1c] text-white border-[#452e1c]"
-                    : "bg-[#f8f3e6] text-[#5b3a28] border-[#d9cbb8]"
-                }`}
-              >
-                <span className="font-medium">Token #{o.tokenNumber}</span>
-                <span className="opacity-70 text-sm">{o.status || "pending"}</span>
-              </div>
-            ))}
-          </div>
+  {orders.map((o) => {
+    let bg = "bg-[#f8f3e6]";
+    let text = "text-[#5b3a28]";
+    let border = "border-[#d9cbb8]";
+
+    if (o.status === "cancelled") {
+      bg = "bg-red-600";
+      text = "text-white";
+      border = "border-red-700";
+    } else if (o.status === "waiting") {
+      bg = "bg-yellow-400";
+      text = "text-black";
+      border = "border-yellow-600";
+    } else if (o.tokenNumber === live.tokenNumber) {
+      bg = "bg-[#452e1c]";
+      text = "text-white";
+      border = "border-[#452e1c]";
+    }
+
+    return (
+      <div
+        key={o.id}
+        className={`flex justify-between items-center p-4 mb-2 rounded-xl border 
+          ${bg} ${text} ${border}`}
+      >
+        <span className="font-medium">Token #{o.tokenNumber}</span>
+        <span className="opacity-70 text-sm">
+          {o.status || "pending"}
+        </span>
+      </div>
+    );
+  })}
+</div>
+
         </div>
       </div>
     </>
